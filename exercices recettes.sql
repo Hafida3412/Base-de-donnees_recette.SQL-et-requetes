@@ -25,7 +25,7 @@ WHERE ingredient_name LIKE '%salade'
 /*5- Insérer une nouvelle recette : « Pâtes à la carbonara » dont la durée de réalisation est de 20 min avec 
 les instructions de votre choix. Pensez à alimenter votre base de données en conséquence afin de 
 pouvoir lister les détails de cette recettes (ingrédients)*/
-
+/***************réponse dans base de données **************************************************************/
 
 /*6- Modifier le nom de la recette ayant comme identifiant id_recette = 3 (nom de la recette à votre 
 convenance)*/
@@ -53,7 +53,7 @@ ON recipe.id_recipe = recipe_ingredients.id_recipe
 
 /********ENSUITE CALCULER LA PRIX TOTAL DE LA RECETTE*****************/
 
-SELECT recipe_ingredients.id_recipe, SUM(price*quantity)
+SELECT recipe_name, recipe_ingredients.id_recipe, SUM(price*quantity)
 FROM ingredient
 INNER JOIN recipe_ingredients
 ON ingredient.id_ingredient = recipe_ingredients.id_ingredient
@@ -62,19 +62,15 @@ ON recipe.id_recipe = recipe_ingredients.id_recipe
 GROUP BY id_recipe
 
 
-/**************9- Afficher le détail de la recette n°5 (liste des ingrédients, quantités et prix)*/
+/*9- Afficher le détail de la recette n°5 (liste des ingrédients, quantités et prix)*/
 
-SELECT ingredient_name AS ingredient, recipe_ingredients.quantity, ingredient.prix
-FROM recipe_ingredients
-JOIN ingredient ON recipe_ingredients.id_ingredient = id_ingredient
-WHERE recipe_ingredients.id_recipe = 5
+SELECT * FROM ingredient
+INNER JOIN recipe_ingredients
+ON ingredient.id_ingredient = recipe_ingredients.id_ingredient
+WHERE id_recipe = 5
 
 /*10- Ajouter un ingrédient en base de données : Poivre, unité : cuillère à café, prix : 2.5 €*/
-
-
-
-
-
+/**********************réponse dans la base de données*************************************************/
 
 /*11- Modifier le prix de l’ingrédient n°12 (prix à votre convenance)*/
 
@@ -83,27 +79,36 @@ WHERE id_ingredient = 12
 
 /*12- Afficher le nombre de recettes par catégories : X entrées, Y plats, Z desserts*/
 
-SELECT category, COUNT(*) AS nombre_recipe
-FROM recipe GROUP BY category
+SELECT COUNT(*) id_recipe
+FROM recipe
+GROUP BY id_category
 
-/*13- Afficher les recettes qui contiennent l’ingrédient « Poulet »*/
+/*13- Afficher les recettes qui contiennent l’ingrédient « boeuf »*/
 
-SELECT * FROM recipe WHERE ingredient LIKE '%poulet%'
+SELECT * FROM ingredient
+INNER JOIN recipe_ingredients
+ON ingredient.id_ingredient = recipe_ingredients.id_ingredient
+WHERE ingredient_name LIKE '%boeuf%';
+
 
 /*14- Mettez à jour toutes les recettes en diminuant leur temps de préparation de 5 minutes */
 
 UPDATE recipe SET preparation_time = preparation_time - 5
+/*WHERE id_recipe = 1*/
 
 
 /*15- Afficher les recettes qui ne nécessitent pas d’ingrédients coûtant plus de 2€ par unité de mesure*/
 
-SELECT * FROM recipe WHERE NOT EXISTS (SELECT * FROM ingredient WHERE recipe_ingredients_id 
-AND ingredient.price_unity > 2)
+SELECT * FROM ingredient
+INNER JOIN recipe_ingredients
+ON ingredient.id_ingredient = recipe_ingredients.id_ingredient
+WHERE EXISTS (SELECT * FROM ingredient WHERE id_ingredient 
+AND ingredient.price > 2)
 
 
 /*16- Afficher la / les recette(s) les plus rapides à préparer*/
 
-SELECT nom_recipe, preparation_time
+SELECT recipe_name, preparation_time
 FROM recipe
 ORDER BY preparation_time
 
@@ -111,21 +116,31 @@ ORDER BY preparation_time
 /*17- Trouver les recettes qui ne nécessitent aucun ingrédient (par exemple la recette de la tasse d’eau 
 chaude qui consiste à verser de l’eau chaude dans une tasse)*/
 
-SELECT * FROM recipe WHERE id NOT IN (SELECT id_recipe FROM ingredient)
+SELECT * FROM recipe_ingredients
+INNER JOIN recipe
+WHERE id_ingredient IS NULL
 
 /*18- Trouver les ingrédients qui sont utilisés dans au moins 3 recettes*/
 
-SELECT ingredient FROM recipe GROUP BY ingredient HAVING COUNT(*) >= 3
+SELECT id_ingredient FROM recipe_ingredients GROUP BY id_ingredient HAVING COUNT(*) >= 3
 
 /*19- Ajouter un nouvel ingrédient à une recette spécifique*/
 
-INSERT INTO recipe_ingredients(id_recipe, id_ingredient)
-VALUES (id_recipe, id_ingredient)
+INSERT INTO ingredient(id_ingredient, ingredient_name, unity, price)
+VALUES (33,"huile", "cl", 0.5)
 
 /*Bonus : Trouver la recette la plus coûteuse de la base de données (il peut y avoir des ex aequo, il est 
 donc exclu d’utiliser la clause LIMIT)*/
 
-SELECT * FROM recipe WHERE price = (SELECT MAX(price) FROM recipe)
+SELECT recipe_name, recipe_ingredients.id_recipe, MAX(price*quantity)
+FROM ingredient
+INNER JOIN recipe_ingredients
+ON ingredient.id_ingredient = recipe_ingredients.id_ingredient
+INNER JOIN recipe
+ON recipe.id_recipe = recipe_ingredients.id_recipe
+GROUP BY id_recipe
+ORDER BY MAX(price*quantity)DESC
+
 
 
 
